@@ -1,7 +1,7 @@
 # DirectMailAmerica narrow MCP tool reference
 
 Endpoint: https://directmailamerica.com/api/mcp-narrow
-Server version: 1.0.0
+Server version: 1.0.1
 Tools: 20
 
 OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends require confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
@@ -28,7 +28,8 @@ Verify this mcp-narrow connection, authenticated workspace principal, environmen
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Connection Status"
   },
   "securitySchemes": [
     {
@@ -63,7 +64,8 @@ No charge. Public expanded product catalog. Minimum order: one piece, including 
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Product Catalog"
   },
   "securitySchemes": [
     {
@@ -236,7 +238,8 @@ Hold a 36-hour expanded-product quote using a workspace key, print-ready PDF and
     "readOnlyHint": false,
     "destructiveHint": true,
     "idempotentHint": false,
-    "openWorldHint": true
+    "openWorldHint": true,
+    "title": "Quote Product"
   },
   "securitySchemes": [
     {
@@ -291,7 +294,8 @@ Release an immutable saved physical-mail quote using an existing authenticated w
     "readOnlyHint": false,
     "destructiveHint": true,
     "idempotentHint": true,
-    "openWorldHint": true
+    "openWorldHint": true,
+    "title": "Send Product Quote"
   },
   "securitySchemes": [
     {
@@ -320,12 +324,12 @@ Release an immutable saved physical-mail quote using an existing authenticated w
 
 ## Send Letter (`send_letter`)
 
-Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key.
+Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md
 
 ```json
 {
   "name": "send_letter",
-  "description": "Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key.",
+  "description": "Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md",
   "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -383,7 +387,40 @@ Print and mail a First-Class letter, Certified Mail or Express postcard using on
         "description": "Actual inspected PDF page count determines the send price; this field cannot override it."
       },
       "from": {
-        "$ref": "#/$defs/address"
+        "type": "object",
+        "required": [
+          "name",
+          "line1",
+          "city",
+          "state",
+          "postal"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "postal": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
       },
       "recipients": {
         "type": "array",
@@ -453,7 +490,8 @@ Print and mail a First-Class letter, Certified Mail or Express postcard using on
     "readOnlyHint": false,
     "destructiveHint": true,
     "idempotentHint": false,
-    "openWorldHint": true
+    "openWorldHint": true,
+    "title": "Send Letter"
   },
   "securitySchemes": [
     {
@@ -505,7 +543,8 @@ No charge. Read stored job status and tracking by id with OAuth or a key for the
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Letter Status"
   },
   "securitySchemes": [
     {
@@ -557,7 +596,8 @@ No charge. List recent jobs in the authenticated workspace; default 20, maximum 
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "List Jobs"
   },
   "securitySchemes": [
     {
@@ -629,7 +669,8 @@ Calculate a public USD physical-mail quote from mail class, page count, recipien
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Pricing"
   },
   "securitySchemes": [
     {
@@ -664,7 +705,8 @@ Read the authenticated workspace's existing balance in USD cents. No charge or b
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Credits"
   },
   "securitySchemes": [
     {
@@ -721,7 +763,8 @@ List or search the workspace address book with bounded pagination. Use nextCurso
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "List Addresses"
   },
   "title": "List Addresses",
   "securitySchemes": [
@@ -821,7 +864,8 @@ Check and normalize U.S. postal address formatting. This is not postal deliverab
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Validate Address"
   },
   "title": "Validate Address",
   "securitySchemes": [
@@ -863,7 +907,8 @@ Read profile name, workspace name, default sender and website links for account 
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Workspace Settings"
   },
   "title": "Get Workspace Settings",
   "securitySchemes": [
@@ -917,7 +962,8 @@ Read the workspace credit ledger with amounts, balances, order references and pa
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Billing History"
   },
   "title": "Get Billing History",
   "securitySchemes": [
@@ -969,7 +1015,8 @@ Download an owned job's saved print PDF as an embedded private resource, includi
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Download Job Document"
   },
   "title": "Download Job Document",
   "securitySchemes": [
@@ -1021,7 +1068,8 @@ Recover an owned saved product quote, exact options, price, expiry and order sta
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Get Product Quote"
   },
   "title": "Get Product Quote",
   "securitySchemes": [
@@ -1079,7 +1127,8 @@ Download a saved quote's exact artwork PDF. All small and double-sided postcards
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Preview Product Quote"
   },
   "title": "Preview Product Quote",
   "securitySchemes": [
@@ -1121,7 +1170,8 @@ List reusable workspace cover-sheet designs and versions, plus defaultDesign mat
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "List Cover Sheets"
   },
   "title": "List Cover Sheets",
   "securitySchemes": [
@@ -1322,7 +1372,8 @@ Render a one-page letter-size cover-sheet PDF with design, sender and recipient.
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Render Cover Sheet"
   },
   "title": "Render Cover Sheet",
   "securitySchemes": [
@@ -1382,7 +1433,8 @@ Convert imageBase64 (maximum 25 MiB decoded) to print-ready PDF using the websit
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Convert Postcard Image"
   },
   "title": "Convert Postcard Image",
   "securitySchemes": [
@@ -1408,12 +1460,12 @@ Convert imageBase64 (maximum 25 MiB decoded) to print-ready PDF using the websit
 
 ## Preview Letter (`preview_letter`)
 
-Render/inspect the exact letter or small postcard PDF and calculate its current price without sending, reserving credits or uploading artwork. Supply exactly one plain-text body or PDF. Covers First-Class, Certified, electronic return receipt, color, duplex, bulk recipients and coupon. Postcards default to included full color; letters default to black and white. Composed preview uses the first recipient. For a small postcard, the primary PDF remains the one-page print artwork; proof identifies a separate two-page PDF showing the approximate white print border and address side. Review that proof, but submit only the original artwork or body, never the proof. Recheck the final price before sending. Workspace authentication required.
+Render/inspect the exact letter or small postcard PDF and calculate its current price without sending, reserving credits or uploading artwork. Supply exactly one plain-text body or PDF. Covers First-Class, Certified, electronic return receipt, color, duplex, bulk recipients and coupon. Postcards default to included full color; letters default to black and white. Composed preview uses the first recipient. For a small postcard, the primary PDF remains the one-page print artwork; proof identifies a separate two-page PDF showing the approximate white print border and address side. Review that proof, but submit only the original artwork or body, never the proof. Recheck the final price before sending. Workspace authentication required. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md
 
 ```json
 {
   "name": "preview_letter",
-  "description": "Render/inspect the exact letter or small postcard PDF and calculate its current price without sending, reserving credits or uploading artwork. Supply exactly one plain-text body or PDF. Covers First-Class, Certified, electronic return receipt, color, duplex, bulk recipients and coupon. Postcards default to included full color; letters default to black and white. Composed preview uses the first recipient. For a small postcard, the primary PDF remains the one-page print artwork; proof identifies a separate two-page PDF showing the approximate white print border and address side. Review that proof, but submit only the original artwork or body, never the proof. Recheck the final price before sending. Workspace authentication required.",
+  "description": "Render/inspect the exact letter or small postcard PDF and calculate its current price without sending, reserving credits or uploading artwork. Supply exactly one plain-text body or PDF. Covers First-Class, Certified, electronic return receipt, color, duplex, bulk recipients and coupon. Postcards default to included full color; letters default to black and white. Composed preview uses the first recipient. For a small postcard, the primary PDF remains the one-page print artwork; proof identifies a separate two-page PDF showing the approximate white print border and address side. Review that proof, but submit only the original artwork or body, never the proof. Recheck the final price before sending. Workspace authentication required. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md",
   "inputSchema": {
     "type": "object",
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1583,7 +1635,8 @@ Render/inspect the exact letter or small postcard PDF and calculate its current 
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
-    "openWorldHint": false
+    "openWorldHint": false,
+    "title": "Preview Letter"
   },
   "title": "Preview Letter",
   "securitySchemes": [

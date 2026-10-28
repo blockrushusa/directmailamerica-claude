@@ -1,6 +1,6 @@
 {
   "name": "directmailamerica",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Print and mail a single First-Class letter or full-color postcard to a US address. Preview your mailing, review the exact price, and approve sending with existing workspace credits. Super simple.",
   "author": {
     "name": "Rainmaker LLC",
@@ -17,6 +17,7 @@
     "printing"
   ],
   "displayName": "DirectMailAmerica",
+  "icon": "./assets/logo.png",
   "repository": "https://github.com/blockrushusa/directmailamerica-claude",
   "privacyPolicyUrl": "https://directmailamerica.com/privacy",
   "supportUrl": "https://directmailamerica.com/contact",

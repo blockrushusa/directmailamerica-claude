@@ -1,14 +1,14 @@
 # DirectMailAmerica narrow MCP tool reference
 
 Endpoint: https://directmailamerica.com/api/mcp-narrow
-Server version: 1.0.1
-Tools: 20
+Server version: 2.0.0
+Tools: 22
 
-OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends require confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
+OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends first require quote_letter and review of its saved proof. send_letter requires quoteId, confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
 
 Workflow and privacy: https://directmailamerica.com/docs/mcp-narrow
 
-Generated from runtime tools/list. Every tool includes title, readOnlyHint and destructiveHint.
+Generated from runtime tools/list. Every tool includes inputSchema, outputSchema, title and side-effect annotations. Read structuredContent.operation for status, funds/mail state and recovery. Complete workflows and no-cost testing: https://directmailamerica.com/agents/quickstart.md
 
 ## Get Connection Status (`get_connection_status`)
 
@@ -22,6 +22,160 @@ Verify this mcp-narrow connection, authenticated workspace principal, environmen
     "type": "object",
     "properties": {},
     "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "connected": {
+        "type": "boolean"
+      },
+      "authenticated": {
+        "type": "boolean"
+      },
+      "account": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "grantedScopes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "endpoint": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Get Connection Status",
   "annotations": {
@@ -58,6 +212,161 @@ No charge. Public expanded product catalog. Minimum order: one piece, including 
     "type": "object",
     "properties": {},
     "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "products": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "standardProducts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "minimumOrderQuantity": {
+        "type": "integer"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Get Product Catalog",
   "annotations": {
@@ -233,6 +542,173 @@ Hold a 36-hour expanded-product quote using a workspace key, print-ready PDF and
       }
     }
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "quoteId": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "totalCents": {
+        "type": "integer"
+      },
+      "currency": {
+        "const": "USD"
+      },
+      "expiresAt": {
+        "type": "string"
+      },
+      "from": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "recipients": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "options": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "jobId": {
+        "type": "string"
+      },
+      "demo": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Quote Product",
   "annotations": {
     "readOnlyHint": false,
@@ -289,6 +765,173 @@ Release an immutable saved physical-mail quote using an existing authenticated w
       }
     }
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "quoteId": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "totalCents": {
+        "type": "integer"
+      },
+      "currency": {
+        "const": "USD"
+      },
+      "expiresAt": {
+        "type": "string"
+      },
+      "from": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "recipients": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "options": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "jobId": {
+        "type": "string"
+      },
+      "demo": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Send Product Quote",
   "annotations": {
     "readOnlyHint": false,
@@ -324,23 +967,37 @@ Release an immutable saved physical-mail quote using an existing authenticated w
 
 ## Send Letter (`send_letter`)
 
-Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md
+Release the immutable quoteId from quote_letter using an existing authenticated workspace balance. Requires confirmed=true, approvedTotalCents matching the saved quote and one idempotencyKey after review of the exact saved PDF, addresses and options. Changed content requires a new quote and fresh approval. Immediately spends the approved amount and can buy postage. No guest payment, funding or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Reuse the same quoteId and key after interruption; uncertain sends require reconciliation. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md
 
 ```json
 {
   "name": "send_letter",
-  "description": "Print and mail a First-Class letter, Certified Mail or Express postcard using only an existing authenticated workspace balance. Requires confirmed=true and approvedTotalCents matching the server-calculated total after review of the exact PDF, addresses and options. Immediately spends the approved amount and can buy postage. No guest payment, account funding, card checkout or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Requires idempotencyKey, reused for identical retries. Uncertain results remain reserved for reconciliation; never retry them with a new key. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md",
+  "description": "Release the immutable quoteId from quote_letter using an existing authenticated workspace balance. Requires confirmed=true, approvedTotalCents matching the saved quote and one idempotencyKey after review of the exact saved PDF, addresses and options. Changed content requires a new quote and fresh approval. Immediately spends the approved amount and can buy postage. No guest payment, funding or cryptocurrency settlement. Insufficient balance sends nothing. Staging prevents postage but still debits the workspace balance. Reuse the same quoteId and key after interruption; uncertain sends require reconciliation. Tool contract: https://directmailamerica.com/agents/references/mcp-narrow.md",
   "inputSchema": {
     "type": "object",
     "additionalProperties": false,
     "required": [
-      "from",
-      "recipients",
+      "quoteId",
       "confirmed",
       "approvedTotalCents",
       "idempotencyKey"
     ],
     "properties": {
+      "quoteId": {
+        "type": "string",
+        "pattern": "^mq_[a-f0-9]{64}$",
+        "description": "Immutable quote returned by quote_letter. Review its exact PDF, addresses, options and total before approval."
+      },
+      "confirmed": {
+        "type": "boolean",
+        "const": true,
+        "description": "The user explicitly approved the exact document, addresses, options and total."
+      },
+      "approvedTotalCents": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Exact approved USD cents; must match the server's calculated price before the balance is spent."
+      },
       "mailClass": {
         "type": "string",
         "enum": [
@@ -434,16 +1091,6 @@ Print and mail a First-Class letter, Certified Mail or Express postcard using on
         "maxLength": 96,
         "pattern": "^[A-Za-z0-9_\\s-]+$",
         "description": "Server-validated catalog code (case-insensitive). Applied to charged/quoted cents only — staging keys still never buy postage. Unknown codes are rejected."
-      },
-      "confirmed": {
-        "type": "boolean",
-        "const": true,
-        "description": "The user explicitly approved the exact document, addresses, options and total."
-      },
-      "approvedTotalCents": {
-        "type": "integer",
-        "minimum": 1,
-        "description": "Exact approved USD cents; must match the server's calculated price before the balance is spent."
       }
     },
     "$defs": {
@@ -480,6 +1127,215 @@ Print and mail a First-Class letter, Certified Mail or Express postcard using on
           },
           "country": {
             "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "statusLabel": {
+        "type": "string"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "createdAt": {
+        "type": "string"
+      },
+      "trackingNumber": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "quoteId": {
+        "type": "string"
+      },
+      "balanceCents": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+      },
+      "intentId": {
+        "type": "string"
+      },
+      "replay": {
+        "type": "boolean"
+      },
+      "settlement": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -538,6 +1394,215 @@ No charge. Read stored job status and tracking by id with OAuth or a key for the
       }
     }
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "statusLabel": {
+        "type": "string"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "createdAt": {
+        "type": "string"
+      },
+      "trackingNumber": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "quoteId": {
+        "type": "string"
+      },
+      "balanceCents": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+      },
+      "intentId": {
+        "type": "string"
+      },
+      "replay": {
+        "type": "boolean"
+      },
+      "settlement": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Get Letter Status",
   "annotations": {
     "readOnlyHint": true,
@@ -588,6 +1653,161 @@ No charge. List recent jobs in the authenticated workspace; default 20, maximum 
       "before": {
         "type": "string",
         "description": "Job id from the last result; fetch the following older page."
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "jobs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "statusLabel": {
+              "type": "string"
+            },
+            "priceCents": {
+              "type": "integer"
+            },
+            "createdAt": {
+              "type": "string"
+            },
+            "trackingNumber": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -664,6 +1884,152 @@ Calculate a public USD physical-mail quote from mail class, page count, recipien
       }
     }
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "totalCents": {
+        "type": "integer"
+      },
+      "creditsCents": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+      },
+      "pageCount": {
+        "type": "integer"
+      },
+      "recipientCount": {
+        "type": "integer"
+      },
+      "breakdown": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Get Pricing",
   "annotations": {
     "readOnlyHint": true,
@@ -699,6 +2065,137 @@ Read the authenticated workspace's existing balance in USD cents. No charge or b
     "type": "object",
     "additionalProperties": false,
     "properties": {}
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "creditsCents": {
+        "type": "integer"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Get Credits",
   "annotations": {
@@ -765,6 +2262,145 @@ List or search the workspace address book with bounded pagination. Use nextCurso
     "idempotentHint": true,
     "openWorldHint": false,
     "title": "List Addresses"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "addresses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "nextCursor": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "List Addresses",
   "securitySchemes": [
@@ -867,6 +2503,150 @@ Check and normalize U.S. postal address formatting. This is not postal deliverab
     "openWorldHint": false,
     "title": "Validate Address"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "valid": {
+        "type": "boolean"
+      },
+      "issues": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "normalized": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "note": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Validate Address",
   "securitySchemes": [
     {
@@ -909,6 +2689,143 @@ Read profile name, workspace name, default sender and website links for account 
     "idempotentHint": true,
     "openWorldHint": false,
     "title": "Get Workspace Settings"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "orgName": {
+        "type": "string"
+      },
+      "fromAddressId": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Get Workspace Settings",
   "securitySchemes": [
@@ -965,6 +2882,161 @@ Read the workspace credit ledger with amounts, balances, order references and pa
     "openWorldHint": false,
     "title": "Get Billing History"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "entries": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "amountCents": {
+              "type": "integer"
+            },
+            "balanceAfterCents": {
+              "type": "integer"
+            },
+            "createdAt": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "nextCursor": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "currency": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Get Billing History",
   "securitySchemes": [
     {
@@ -1018,6 +3090,149 @@ Download an owned job's saved print PDF as an embedded private resource, includi
     "openWorldHint": false,
     "title": "Download Job Document"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "pages": {
+        "type": "integer"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Download Job Document",
   "securitySchemes": [
     {
@@ -1070,6 +3285,176 @@ Recover an owned saved product quote, exact options, price, expiry and order sta
     "idempotentHint": true,
     "openWorldHint": false,
     "title": "Get Product Quote"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "creditsCents": {
+        "type": "integer"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Get Product Quote",
   "securitySchemes": [
@@ -1130,6 +3515,188 @@ Download a saved quote's exact artwork PDF. All small and double-sided postcards
     "openWorldHint": false,
     "title": "Preview Product Quote"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "proofNote": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Preview Product Quote",
   "securitySchemes": [
     {
@@ -1172,6 +3739,144 @@ List reusable workspace cover-sheet designs and versions, plus defaultDesign mat
     "idempotentHint": true,
     "openWorldHint": false,
     "title": "List Cover Sheets"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "coverSheets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "defaultDesign": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "List Cover Sheets",
   "securitySchemes": [
@@ -1375,6 +4080,149 @@ Render a one-page letter-size cover-sheet PDF with design, sender and recipient.
     "openWorldHint": false,
     "title": "Render Cover Sheet"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "pages": {
+        "type": "integer"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Render Cover Sheet",
   "securitySchemes": [
     {
@@ -1435,6 +4283,149 @@ Convert imageBase64 (maximum 25 MiB decoded) to print-ready PDF using the websit
     "idempotentHint": true,
     "openWorldHint": false,
     "title": "Convert Postcard Image"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "pages": {
+        "type": "integer"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "title": "Convert Postcard Image",
   "securitySchemes": [
@@ -1638,7 +4629,731 @@ Render/inspect the exact letter or small postcard PDF and calculate its current 
     "openWorldHint": false,
     "title": "Preview Letter"
   },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "pages": {
+        "type": "integer"
+      },
+      "priceCents": {
+        "type": "integer"
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "Preview Letter",
+  "securitySchemes": [
+    {
+      "type": "oauth2",
+      "scopes": [
+        "mcp:read"
+      ]
+    }
+  ],
+  "_meta": {
+    "securitySchemes": [
+      {
+        "type": "oauth2",
+        "scopes": [
+          "mcp:read"
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Quote Letter (`quote_letter`)
+
+Create a saved 30-minute standard-letter or Express-postcard quote and exact PDF proof without charging or sending. Review artwork, sender, every recipient, options, expiry and total. send_letter requires this quoteId, confirmed:true, matching approvedTotalCents and one idempotencyKey. Changed content requires a new quote and fresh approval. Full-profile guest quote IDs are private bearer capabilities.
+
+```json
+{
+  "name": "quote_letter",
+  "description": "Create a saved 30-minute standard-letter or Express-postcard quote and exact PDF proof without charging or sending. Review artwork, sender, every recipient, options, expiry and total. send_letter requires this quoteId, confirmed:true, matching approvedTotalCents and one idempotencyKey. Changed content requires a new quote and fresh approval. Full-profile guest quote IDs are private bearer capabilities.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "from",
+      "recipients"
+    ],
+    "properties": {
+      "mailClass": {
+        "type": "string",
+        "enum": [
+          "first_class",
+          "certified",
+          "postcard"
+        ],
+        "default": "first_class"
+      },
+      "certified": {
+        "type": "boolean"
+      },
+      "electronicReturnReceipt": {
+        "type": "boolean"
+      },
+      "color": {
+        "type": "boolean",
+        "description": "Color letter printing adds $0.49 per printed page per recipient. Express postcards default to included full color: true preserves color; false converts the mailed PDF to grayscale."
+      },
+      "doubleSided": {
+        "type": "boolean",
+        "default": false
+      },
+      "body": {
+        "type": "string",
+        "description": "Plain-text letter body when not uploading a PDF"
+      },
+      "pdfBase64": {
+        "type": "string",
+        "description": "Print-ready PDF as base64, maximum 25 MiB decoded. Embedded fonts are preserved. Express postcard: exactly one unrotated 5.5 × 4.25 inch (396 × 306 point) page, matching page boxes, no added bleed or crop marks. No raw image files."
+      },
+      "filename": {
+        "type": "string"
+      },
+      "pageCount": {
+        "type": "integer",
+        "description": "Actual inspected PDF page count determines the send price; this field cannot override it."
+      },
+      "from": {
+        "type": "object",
+        "required": [
+          "name",
+          "line1",
+          "city",
+          "state",
+          "postal"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "postal": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "recipients": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/address"
+        }
+      },
+      "couponCode": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 96,
+        "pattern": "^[A-Za-z0-9_\\s-]+$",
+        "description": "Server-validated catalog code (case-insensitive). Applied to charged/quoted cents only — staging keys still never buy postage. Unknown codes are rejected."
+      }
+    },
+    "$defs": {
+      "address": {
+        "type": "object",
+        "required": [
+          "name",
+          "line1",
+          "city",
+          "state",
+          "postal"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "postal": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "title": "Quote Letter",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "title": "Quote Letter"
+  },
+  "securitySchemes": [
+    {
+      "type": "oauth2",
+      "scopes": [
+        "mcp:read",
+        "mcp:write"
+      ]
+    }
+  ],
+  "_meta": {
+    "securitySchemes": [
+      {
+        "type": "oauth2",
+        "scopes": [
+          "mcp:read",
+          "mcp:write"
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Get Letter Quote (`get_letter_quote`)
+
+Read a saved standard-mail quote, its exact PDF and send outcome. No charge or submission. Use after interruption; completed quotes cannot be sent again. Quote access is bound to the account, endpoint and environment. Guest IDs are private bearer capabilities.
+
+```json
+{
+  "name": "get_letter_quote",
+  "description": "Read a saved standard-mail quote, its exact PDF and send outcome. No charge or submission. Use after interruption; completed quotes cannot be sent again. Quote access is bound to the account, endpoint and environment. Guest IDs are private bearer capabilities.",
+  "inputSchema": {
+    "type": "object",
+    "required": [
+      "quoteId"
+    ],
+    "properties": {
+      "quoteId": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "mimeType": {
+        "type": "string"
+      },
+      "sizeBytes": {
+        "type": "integer"
+      },
+      "uri": {
+        "type": "string"
+      },
+      "quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "from": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+          },
+          "options": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "title": "Get Letter Quote",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "title": "Get Letter Quote"
+  },
   "securitySchemes": [
     {
       "type": "oauth2",

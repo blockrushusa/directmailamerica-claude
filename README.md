@@ -4,7 +4,7 @@
 
 Print and mail one First-Class letter or full-color postcard to a US address, including your own. No bulk order or subscription is required. Review the proof and price before anything is sent. Super simple.
 
-This plugin combines the DirectMailAmerica mailing skill with its hosted MCP connector. It supports Claude chat, Cowork, and Claude Code through a remote HTTPS connection. It contains Markdown instructions, JSON configuration, and branding assets; it runs no local program or installation hook.
+This plugin combines the DirectMailAmerica mailing skill with its hosted MCP connector. It supports Claude chat, Cowork, and Claude Code through a remote HTTPS connection. It contains Markdown instructions, JSON configuration, and branding assets; it has no installation hook and runs no program automatically. An optional Node.js example script is included for the separate no-cost simulation.
 
 ## What you can do
 
@@ -14,7 +14,7 @@ This plugin combines the DirectMailAmerica mailing skill with its hosted MCP con
 - Approve the exact content, addresses, options, and price, then mail using an existing workspace balance.
 - Read job status, available documents, credit balance, and billing history. Printing or submission status does not establish delivery.
 
-The connector exposes 20 tools. It does not provide account funding, card checkout, crypto transfers, AI image generation, email-inbox automation, webhooks, or administrator controls. Email to Letter and Email to Postcard remain separate website services.
+The connector exposes 22 tools. It does not provide account funding, card checkout, crypto transfers, AI image generation, email-inbox automation, webhooks, or administrator controls. Email to Letter and Email to Postcard remain separate website services.
 
 ## Connect your account
 
@@ -50,3 +50,11 @@ Retention follows that policy: account and billing records remain for the accoun
 - [Service terms](https://directmailamerica.com/terms)
 
 Publisher: Rainmaker LLC, operator of DirectMailAmerica.com. The MIT license covers these plugin integration files; access to the hosted service remains subject to its terms. The license does not grant rights to use the publisher's trademarks to imply endorsement. Directory submission, approval, and publication are separate from the running service.
+
+## Version 2 approval and free testing
+
+Standard sends now require a saved `quote_letter` result. Review its exact PDF, addresses, options, expiry and total, then call `send_letter` with the `quoteId`, `confirmed:true`, exact `approvedTotalCents` and one stable `idempotencyKey`. Changed content requires fresh approval. Use `get_letter_quote` to recover the original result after an interruption.
+
+Every tool publishes an output schema and returns an `operation` receipt with status, financial state and recovery instructions. The compact connector remains the default; advanced services have separate endpoints.
+
+For development, use the [no-cost simulation guide](https://directmailamerica.com/docs/mcp-simulation) and bundled [quickstart](skills/directmailamerica/references/quickstart.md). Simulation uses a separate endpoint and expiring key; it cannot spend real credits or send physical mail. The bundled Claude connector stays connected to the normal mailing endpoint and never silently switches.

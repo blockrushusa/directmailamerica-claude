@@ -10,11 +10,11 @@ This plugin combines the DirectMailAmerica mailing skill with its hosted MCP con
 
 - Quote and preview First-Class letters, Certified Mail with optional Electronic Return Receipt, and postcards.
 - Prepare a 5.5 × 4.25 inch single-sided postcard or an 8.5 × 5.5 inch double-sided postcard. Use the live catalog for other products and print options.
-- Use saved addresses and cover sheets, convert existing artwork into a print PDF, and inspect proofs.
+- Use saved addresses, create and edit reusable cover sheets, convert existing artwork into a print PDF, and inspect proofs.
 - Approve the exact content, addresses, options, and price, then mail using an existing workspace balance.
 - Read job status, available documents, credit balance, and billing history. Printing or submission status does not establish delivery.
 
-The connector exposes 22 tools. It does not provide account funding, card checkout, crypto transfers, AI image generation, email-inbox automation, webhooks, or administrator controls. Email to Letter and Email to Postcard remain separate website services.
+The connector exposes 23 tools. Cover-sheet saves require write access, preserve fixed address windows, and reject stale versions. Saving does not charge, mail, or change already approved artwork. It does not provide account funding, card checkout, crypto transfers, AI image generation, email-inbox automation, webhooks, or administrator controls. Email to Letter and Email to Postcard remain separate website services.
 
 ## Connect your account
 

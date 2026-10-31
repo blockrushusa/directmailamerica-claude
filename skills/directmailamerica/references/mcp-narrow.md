@@ -1,8 +1,8 @@
 # DirectMailAmerica narrow MCP tool reference
 
 Endpoint: https://directmailamerica.com/api/mcp-narrow
-Server version: 2.0.2
-Tools: 22
+Server version: 2.1.0
+Tools: 23
 
 OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends first require quote_letter and review of its saved proof. send_letter requires quoteId, confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
 
@@ -3721,12 +3721,12 @@ Download a saved quote's exact artwork PDF. All small and double-sided postcards
 
 ## List Cover Sheets (`list_cover_sheets`)
 
-List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. Use render_cover_sheet to preview a supplied design. Manage saved cover sheets on the website; this compact connector cannot save or edit them. No charge.
+List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. To reset a local draft, replace its design with defaultDesign; this read never changes saved presets. Render to preview, then save_cover_sheet only if the user wants to save it. No charge. Workspace authentication required.
 
 ```json
 {
   "name": "list_cover_sheets",
-  "description": "List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. Use render_cover_sheet to preview a supplied design. Manage saved cover sheets on the website; this compact connector cannot save or edit them. No charge.",
+  "description": "List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. To reset a local draft, replace its design with defaultDesign; this read never changes saved presets. Render to preview, then save_cover_sheet only if the user wants to save it. No charge. Workspace authentication required.",
   "inputSchema": {
     "type": "object",
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3893,6 +3893,256 @@ List reusable workspace cover-sheet designs and versions, plus defaultDesign mat
         "type": "oauth2",
         "scopes": [
           "mcp:read"
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Save Cover Sheet (`save_cover_sheet`)
+
+Create or update a reusable workspace cover sheet: name, heading, message, sans/serif font, heading/body sizes and alignment. An empty heading or message omits it. Read list_cover_sheets first; preview changes with render_cover_sheet. Use a new 64-character lowercase hexadecimal id and version:0 to create, or the existing id and current version to edit. A stale version fails; reread before saving again. Use defaultDesign to reset a draft. Maximum 25 designs. Validates fit and preserves fixed envelope address windows. No charge or mailing; does not attach the design to mail or change existing PDFs or saved quotes. Requires OAuth read/write and production workspace access, except the isolated reviewer workspace may save synthetic test designs. Workspace authentication required.
+
+```json
+{
+  "name": "save_cover_sheet",
+  "description": "Create or update a reusable workspace cover sheet: name, heading, message, sans/serif font, heading/body sizes and alignment. An empty heading or message omits it. Read list_cover_sheets first; preview changes with render_cover_sheet. Use a new 64-character lowercase hexadecimal id and version:0 to create, or the existing id and current version to edit. A stale version fails; reread before saving again. Use defaultDesign to reset a draft. Maximum 25 designs. Validates fit and preserves fixed envelope address windows. No charge or mailing; does not attach the design to mail or change existing PDFs or saved quotes. Requires OAuth read/write and production workspace access, except the isolated reviewer workspace may save synthetic test designs. Workspace authentication required.",
+  "inputSchema": {
+    "type": "object",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "design": {
+        "type": "object",
+        "properties": {
+          "heading": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "font": {
+            "type": "string",
+            "enum": [
+              "sans",
+              "serif"
+            ]
+          },
+          "headingSize": {
+            "type": "integer",
+            "minimum": 14,
+            "maximum": 28
+          },
+          "bodySize": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 16
+          },
+          "align": {
+            "type": "string",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ]
+          }
+        },
+        "required": [
+          "heading",
+          "message",
+          "font",
+          "headingSize",
+          "bodySize",
+          "align"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "id",
+      "version",
+      "name",
+      "design"
+    ],
+    "additionalProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "title": "Save Cover Sheet"
+  },
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "operation"
+    ],
+    "additionalProperties": true,
+    "description": "Read operation first for financial/mail state and recovery. Optional service fields are absent on failure. Unknown is not zero or permission to retry. Legacy service fields remain available.",
+    "properties": {
+      "coverSheet": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": true
+      },
+      "error": {
+        "type": "string"
+      },
+      "operation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "tool",
+          "status",
+          "code",
+          "amountCents",
+          "currency",
+          "expiresAt",
+          "receiptId",
+          "fundsState",
+          "mailingState",
+          "recovery"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "needs_review"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "USD cents. Null means not applicable or not known; never interpret null as zero."
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundsState": {
+            "enum": [
+              "none",
+              "reserved",
+              "debited",
+              "captured",
+              "credited",
+              "refunded",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "mailingState": {
+            "enum": [
+              "none",
+              "submitted",
+              "pending",
+              "unknown",
+              "simulated"
+            ]
+          },
+          "recovery": {
+            "type": "object",
+            "required": [
+              "action",
+              "safeToRetry",
+              "nextTool",
+              "instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "enum": [
+                  "none",
+                  "retry_same_request",
+                  "check_existing_job",
+                  "fresh_approval",
+                  "requires_user_action"
+                ]
+              },
+              "safeToRetry": {
+                "type": "boolean"
+              },
+              "nextTool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instructions": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "title": "Save Cover Sheet",
+  "securitySchemes": [
+    {
+      "type": "oauth2",
+      "scopes": [
+        "mcp:read",
+        "mcp:write"
+      ]
+    }
+  ],
+  "_meta": {
+    "securitySchemes": [
+      {
+        "type": "oauth2",
+        "scopes": [
+          "mcp:read",
+          "mcp:write"
         ]
       }
     ]

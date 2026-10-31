@@ -1,7 +1,7 @@
 # DirectMailAmerica narrow MCP tool reference
 
 Endpoint: https://directmailamerica.com/api/mcp-narrow
-Server version: 2.0.0
+Server version: 2.0.1
 Tools: 22
 
 OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends first require quote_letter and review of its saved proof. send_letter requires quoteId, confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
@@ -3721,12 +3721,12 @@ Download a saved quote's exact artwork PDF. All small and double-sided postcards
 
 ## List Cover Sheets (`list_cover_sheets`)
 
-List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. To reset a local draft, replace its design with defaultDesign; this read never changes saved presets. Render to preview, then save_cover_sheet only if the user wants to save it. No charge. Workspace authentication required.
+List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. Use render_cover_sheet to preview a supplied design. Manage saved cover sheets on the website; this compact connector cannot save or edit them. No charge.
 
 ```json
 {
   "name": "list_cover_sheets",
-  "description": "List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. To reset a local draft, replace its design with defaultDesign; this read never changes saved presets. Render to preview, then save_cover_sheet only if the user wants to save it. No charge. Workspace authentication required.",
+  "description": "List reusable workspace cover-sheet designs and versions, plus defaultDesign matching the website's Reset defaults button. Use render_cover_sheet to preview a supplied design. Manage saved cover sheets on the website; this compact connector cannot save or edit them. No charge.",
   "inputSchema": {
     "type": "object",
     "$schema": "http://json-schema.org/draft-07/schema#",

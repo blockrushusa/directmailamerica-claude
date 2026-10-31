@@ -1,7 +1,7 @@
 # DirectMailAmerica narrow MCP tool reference
 
 Endpoint: https://directmailamerica.com/api/mcp-narrow
-Server version: 2.0.1
+Server version: 2.0.2
 Tools: 22
 
 OAuth authorization code + PKCE S256. Public pricing and catalog need no account. Private tools require authentication. Existing workspace balance only. No funding, crypto, AI generation, inbox automation or admin controls. Standard sends first require quote_letter and review of its saved proof. send_letter requires quoteId, confirmed=true, exact approvedTotalCents and idempotencyKey; saved quotes require explicit confirmation. Review documents, addresses, options and total first. Staging prevents postage but debits the workspace balance. Directory reviewers use isolated test credits.
